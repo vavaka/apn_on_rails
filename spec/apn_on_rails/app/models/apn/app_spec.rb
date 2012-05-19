@@ -1,5 +1,7 @@
 require File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'spec_helper.rb')
 
+Kernel.const_set(:Rails, Module)
+
 describe APN::App do
 
   describe 'send_notifications' do
@@ -38,28 +40,28 @@ describe APN::App do
   describe 'send_notifications_not_associated_with_an_app' do 
     
     it 'should send unsent notifications that are associated with devices that are not with any app' do 
-      RAILS_ENV = 'staging'
+      Rails.stub_chain(:env, :production?).and_return(false)
       device = DeviceFactory.create
       device.app_id = nil
       device.save
       APN::App.all.each { |a| a.destroy }
       notifications = [NotificationFactory.create({:device_id => device.id}), 
-                       NotificationFactory.create({:device_id => device.id})]
-                   
-       notifications.each_with_index do |notify, i|
-         notify.stub(:message_for_sending).and_return("message-#{i}")
-         notify.should_receive(:sent_at=).with(instance_of(Time))
-         notify.should_receive(:save)
-       end  
-   
-       APN::Device.should_receive(:find_each).and_yield(device)
-       device.should_receive(:unsent_notifications).and_return(notifications)
-  
-       ssl_mock = mock('ssl_mock')
-       ssl_mock.should_receive(:write).with('message-0')
-       ssl_mock.should_receive(:write).with('message-1')
-       APN::Connection.should_receive(:open_for_delivery).and_yield(ssl_mock, nil)
-       APN::App.send_notifications
+      		 NotificationFactory.create({:device_id => device.id})]
+      	     
+      notifications.each_with_index do |notify, i|
+        notify.stub(:message_for_sending).and_return("message-#{i}")
+        notify.should_receive(:sent_at=).with(instance_of(Time))
+        notify.should_receive(:save)
+      end  
+      
+      APN::Device.should_receive(:find_each).and_yield(device)
+      device.should_receive(:unsent_notifications).and_return(notifications)
+      
+      ssl_mock = mock('ssl_mock')
+      ssl_mock.should_receive(:write).with('message-0')
+      ssl_mock.should_receive(:write).with('message-1')
+      APN::Connection.should_receive(:open_for_delivery).and_yield(ssl_mock, nil)
+      APN::App.send_notifications
     end
   end               
   
@@ -211,8 +213,8 @@ describe APN::App do
   describe 'cert for production environment' do 
     
     it 'should return the production cert for the app' do 
+      Rails.stub_chain(:env, :production?).and_return(true)
       app = AppFactory.create
-      RAILS_ENV = 'production'
       app.cert.should == app.apn_prod_cert
     end
     
@@ -221,8 +223,8 @@ describe APN::App do
   describe 'cert for development and staging environment' do 
     
     it 'should return the development cert for the app' do 
+      Rails.stub_chain(:env, :production?).and_return(false)
       app = AppFactory.create
-      RAILS_ENV = 'staging'
       app.cert.should == app.apn_dev_cert
     end
   end
