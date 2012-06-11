@@ -22,7 +22,6 @@ require File.join(File.dirname(__FILE__), 'factories', 'group_notification_facto
 require File.join(File.dirname(__FILE__), 'factories', 'notification_factory.rb')
 require File.join(File.dirname(__FILE__), 'factories', 'pull_notification_factory.rb')
 
-configatron.apn.cert = File.expand_path(File.join(File.dirname(__FILE__), 'rails_root', 'config', 'apple_push_notification_development.pem'))
 
 RSpec.configure do |config|
   

@@ -1,36 +1,5 @@
 require 'socket'
 require 'openssl'
-require 'configatron'
-
-rails_root = File.join(FileUtils.pwd, 'rails_root')
-if defined?(Rails.root)
-  rails_root = Rails.root.to_s
-end
-
-rails_env = 'development'
-if defined?(Rails.env)
-  rails_env = Rails.env
-end
-
-configatron.apn.set_default(:passphrase, '')
-configatron.apn.set_default(:port, 2195)
-
-configatron.apn.feedback.set_default(:passphrase, configatron.apn.passphrase)
-configatron.apn.feedback.set_default(:port, 2196)
-
-if rails_env == 'production'
-  configatron.apn.set_default(:host, 'gateway.push.apple.com')
-  configatron.apn.set_default(:cert, File.join(rails_root, 'config', 'apple_push_notification_production.pem'))
-
-  configatron.apn.feedback.set_default(:host, 'feedback.push.apple.com')
-  configatron.apn.feedback.set_default(:cert, configatron.apn.cert)
-else
-  configatron.apn.set_default(:host, 'gateway.sandbox.push.apple.com')
-  configatron.apn.set_default(:cert, File.join(rails_root, 'config', 'apple_push_notification_development.pem'))
-
-  configatron.apn.feedback.set_default(:host, 'feedback.sandbox.push.apple.com')
-  configatron.apn.feedback.set_default(:cert, configatron.apn.cert)
-end
 
 module APN # :nodoc:
 
@@ -52,6 +21,45 @@ module APN # :nodoc:
     end
 
   end # Errors
+
+  module Configuration
+    VALID_CONFIG_KEYS = [
+      :passphrase,
+      :host,
+      :port,
+      :feedback_passphrase,
+      :feedback_host,
+      :feedback_port
+    ].freeze
+
+    DEFAULT_PASSPHRASE = ''
+    DEFAULT_HOST = 'gateway.sandbox.push.apple.com' #'gateway.push.apple.com'
+    DEFAULT_PORT = 2195
+    DEFAULT_FEEDBACK_PASSPHRASE = ''
+    DEFAULT_FEEDBACK_HOST = 'feedback.sandbox.push.apple.com' #'feedback.sandbox.push.apple.com'
+    DEFAULT_FEEDBACK_PORT = 2196
+
+    attr_accessor *VALID_CONFIG_KEYS
+
+    def self.extended(base)
+      base.reset
+    end
+
+    def configure
+      yield self
+    end
+
+    def reset
+      self.passphrase = DEFAULT_PASSPHRASE
+      self.host = DEFAULT_HOST
+      self.port = DEFAULT_PORT
+      self.feedback_passphrase = DEFAULT_FEEDBACK_PASSPHRASE
+      self.feedback_host = DEFAULT_FEEDBACK_HOST
+      self.feedback_port = DEFAULT_FEEDBACK_PORT
+    end
+  end
+
+  extend Configuration
 
 end # APN
 

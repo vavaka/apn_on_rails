@@ -10,18 +10,7 @@ bindir: bin
 cert_chain: []
 
 date: 2010-01-26 00:00:00 -05:00
-default_executable: 
-dependencies: 
-- !ruby/object:Gem::Dependency 
-  name: configatron
-  type: :runtime
-  version_requirement: 
-  version_requirements: !ruby/object:Gem::Requirement 
-    requirements: 
-    - - ">="
-      - !ruby/object:Gem::Version 
-        version: "0"
-    version: 
+default_executable:
 description: "apn_on_rails was developed by: markbates"
 email: mark@markbates.com
 executables: []
